@@ -3,12 +3,19 @@ package main
 import (
 	"context"
 	"fmt"
+	"log"
+	"os"
+	"read-test-server/common"
+	"read-test-server/router"
+	"time"
+
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
-	"log"
+	"github.com/gin-gonic/gin"
 )
+
 
 const (
 	region     = "ap-east-1"
@@ -20,14 +27,24 @@ const (
 )
 
 func main() {
+	defer common.Log.Sync()
+	r := gin.Default()
+
+	router.RegisterRouter(r)
+
+	if err := r.Run(":1234"); err != nil {
+		panic(err)
+	}
 
 	// Load the SDK's configuration from environment and shared config, and
 	// create the client with this.
-	cfg, err := config.LoadDefaultConfig(context.TODO(), config.WithRegion(region), config.WithCredentialsProvider(credentials.StaticCredentialsProvider{
-		Value: aws.Credentials{
-			AccessKeyID: accessKeyId, SecretAccessKey: accessSecretKey, SessionToken: "",
-		},
-	}))
+	cfg, err := config.LoadDefaultConfig(context.TODO(), config.WithRegion(region),
+		config.WithCredentialsProvider(credentials.StaticCredentialsProvider{
+			Value: aws.Credentials{
+				AccessKeyID: accessKeyId, SecretAccessKey: accessSecretKey, SessionToken: "",
+			},
+		}),
+	)
 	if err != nil {
 		log.Fatalf("failed to load SDK configuration, %v", err)
 	}
@@ -68,4 +85,23 @@ func main() {
 			fmt.Println("Object:", *obj.Key)
 		}
 	}
+
+	fileName := "test/something_to_delete.zip"
+	file, err := os.Open("./idman638build18.exe")
+	if err != nil {
+		log.Fatalf("open file failed %v", err)
+	}
+
+	begin := time.Now()
+
+	object, err := client.PutObject(context.TODO(), &s3.PutObjectInput{
+		Key:    &fileName,
+		Body:   file,
+		Bucket: &bn,
+		//ACL:                       "",
+	})
+	if err != nil {
+		log.Fatalf("upload failed, %v", err)
+	}
+	fmt.Printf("??Object??, %#v, 耗时: %v", object, time.Now().Sub(begin))
 }
