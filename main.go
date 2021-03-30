@@ -1,11 +1,14 @@
 package main
 
 import (
+	"github.com/dipperin/go-ms-toolkit/json"
 	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
+	"io/ioutil"
+	"os"
 	"read-test-server/common"
 	"read-test-server/router"
 )
-
 
 const (
 	region     = "ap-east-1"
@@ -22,12 +25,23 @@ func init() {
 }
 
 func main() {
-	defer common.Log.Sync()
+	log := common.Log
+	defer log.Sync()
+
+	if len(os.Args) != 2 {
+		log.Panic("please specify configuration file")
+	}
+	var conf common.ServerConfig
+	confPath := os.Args[1]
+	if confData, err := ioutil.ReadFile(confPath); err != nil {
+		log.Panic("read config file failed", zap.Error(err))
+	} else if err = json.ParseJsonFromBytes(confData, &conf); err != nil {
+		log.Panic("parse config file failed", zap.Error(err))
+	}
+
 	r := gin.Default()
-
 	router.RegisterRouter(r)
-
-	common.Log.Info("start gin server...")
+	log.Info("start gin server...")
 	if err := r.Run(":1234"); err != nil {
 		panic(err)
 	}
