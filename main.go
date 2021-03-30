@@ -16,6 +16,11 @@ const (
 	accessSecretKey = "tqtkSQMcsu4IHXmYWI0yD/uH7zpCnf5gADRspXGU"
 )
 
+func init() {
+	common.InitLogger()
+	common.InitAudioUploadRoot()
+}
+
 func main() {
 	defer common.Log.Sync()
 	r := gin.Default()
