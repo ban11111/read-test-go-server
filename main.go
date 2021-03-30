@@ -22,6 +22,7 @@ func main() {
 
 	router.RegisterRouter(r)
 
+	common.Log.Info("start gin server...")
 	if err := r.Run(":1234"); err != nil {
 		panic(err)
 	}
