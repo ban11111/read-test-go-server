@@ -1,19 +1,9 @@
 package main
 
 import (
-	"context"
-	"fmt"
-	"log"
-	"os"
+	"github.com/gin-gonic/gin"
 	"read-test-server/common"
 	"read-test-server/router"
-	"time"
-
-	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/config"
-	"github.com/aws/aws-sdk-go-v2/credentials"
-	"github.com/aws/aws-sdk-go-v2/service/s3"
-	"github.com/gin-gonic/gin"
 )
 
 
@@ -36,72 +26,72 @@ func main() {
 		panic(err)
 	}
 
-	// Load the SDK's configuration from environment and shared config, and
-	// create the client with this.
-	cfg, err := config.LoadDefaultConfig(context.TODO(), config.WithRegion(region),
-		config.WithCredentialsProvider(credentials.StaticCredentialsProvider{
-			Value: aws.Credentials{
-				AccessKeyID: accessKeyId, SecretAccessKey: accessSecretKey, SessionToken: "",
-			},
-		}),
-	)
-	if err != nil {
-		log.Fatalf("failed to load SDK configuration, %v", err)
-	}
-
-	client := s3.NewFromConfig(cfg)
-
-	var bn = bucketName
-	// Set the parameters based on the CLI flag inputs.
-	params := &s3.ListObjectsV2Input{
-		Bucket: &bn,
-	}
-	//if len(objectPrefix) != 0 {
-	//	params.Prefix = &objectPrefix
+	//// Load the SDK's configuration from environment and shared config, and
+	//// create the client with this.
+	//cfg, err := config.LoadDefaultConfig(context.TODO(), config.WithRegion(region),
+	//	config.WithCredentialsProvider(credentials.StaticCredentialsProvider{
+	//		Value: aws.Credentials{
+	//			AccessKeyID: accessKeyId, SecretAccessKey: accessSecretKey, SessionToken: "",
+	//		},
+	//	}),
+	//)
+	//if err != nil {
+	//	log.Fatalf("failed to load SDK configuration, %v", err)
 	//}
-	//if len(objectDelimiter) != 0 {
-	//	params.Delimiter = &objectDelimiter
+	//
+	//client := s3.NewFromConfig(cfg)
+	//
+	//var bn = bucketName
+	//// Set the parameters based on the CLI flag inputs.
+	//params := &s3.ListObjectsV2Input{
+	//	Bucket: &bn,
 	//}
-
-	// Create the Paginator for the ListObjectsV2 operation.
-	p := s3.NewListObjectsV2Paginator(client, params, func(o *s3.ListObjectsV2PaginatorOptions) {
-		if v := int32(maxKeys); v != 0 {
-			o.Limit = v
-		}
-	})
-
-	var i int
-	for p.HasMorePages() {
-		i++
-		// Next Page takes a new context for each page retrieval. This is where
-		// you could add timeouts or deadlines.
-		page, err := p.NextPage(context.TODO())
-		if err != nil {
-			log.Fatalf("failed to get page %v, %v", i, err)
-		}
-
-		// Log the objects found
-		for _, obj := range page.Contents {
-			fmt.Println("Object:", *obj.Key)
-		}
-	}
-
-	fileName := "test/something_to_delete.zip"
-	file, err := os.Open("./idman638build18.exe")
-	if err != nil {
-		log.Fatalf("open file failed %v", err)
-	}
-
-	begin := time.Now()
-
-	object, err := client.PutObject(context.TODO(), &s3.PutObjectInput{
-		Key:    &fileName,
-		Body:   file,
-		Bucket: &bn,
-		//ACL:                       "",
-	})
-	if err != nil {
-		log.Fatalf("upload failed, %v", err)
-	}
-	fmt.Printf("??Object??, %#v, 耗时: %v", object, time.Now().Sub(begin))
+	////if len(objectPrefix) != 0 {
+	////	params.Prefix = &objectPrefix
+	////}
+	////if len(objectDelimiter) != 0 {
+	////	params.Delimiter = &objectDelimiter
+	////}
+	//
+	//// Create the Paginator for the ListObjectsV2 operation.
+	//p := s3.NewListObjectsV2Paginator(client, params, func(o *s3.ListObjectsV2PaginatorOptions) {
+	//	if v := int32(maxKeys); v != 0 {
+	//		o.Limit = v
+	//	}
+	//})
+	//
+	//var i int
+	//for p.HasMorePages() {
+	//	i++
+	//	// Next Page takes a new context for each page retrieval. This is where
+	//	// you could add timeouts or deadlines.
+	//	page, err := p.NextPage(context.TODO())
+	//	if err != nil {
+	//		log.Fatalf("failed to get page %v, %v", i, err)
+	//	}
+	//
+	//	// Log the objects found
+	//	for _, obj := range page.Contents {
+	//		fmt.Println("Object:", *obj.Key)
+	//	}
+	//}
+	//
+	//fileName := "test/something_to_delete.zip"
+	//file, err := os.Open("./idman638build18.exe")
+	//if err != nil {
+	//	log.Fatalf("open file failed %v", err)
+	//}
+	//
+	//begin := time.Now()
+	//
+	//object, err := client.PutObject(context.TODO(), &s3.PutObjectInput{
+	//	Key:    &fileName,
+	//	Body:   file,
+	//	Bucket: &bn,
+	//	//ACL:                       "",
+	//})
+	//if err != nil {
+	//	log.Fatalf("upload failed, %v", err)
+	//}
+	//fmt.Printf("??Object??, %#v, 耗时: %v", object, time.Now().Sub(begin))
 }
