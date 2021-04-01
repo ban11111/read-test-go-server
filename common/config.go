@@ -1,10 +1,9 @@
 package common
 
 import (
-	dbConfig "github.com/dipperin/go-ms-toolkit/db-config"
-	"github.com/dipperin/go-ms-toolkit/orm/gorm/mysql"
 	"go.uber.org/zap"
 	"os"
+	"read-test-server/common/gorm2/mysql"
 )
 
 const (
@@ -25,9 +24,5 @@ func InitAudioUploadRoot() {
 }
 
 type ServerConfig struct {
-	Mysql *dbConfig.DbConfig `json:"mysql"`
-}
-
-func (s *ServerConfig) MakeDB() mysql.DB {
-	return mysql.MakeDB(s.Mysql)
+	Mysql *mysql.DbConfig `json:"mysql"`
 }

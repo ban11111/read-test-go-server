@@ -1,12 +1,14 @@
 package main
 
 import (
+	"fmt"
 	"github.com/dipperin/go-ms-toolkit/json"
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 	"io/ioutil"
 	"os"
 	"read-test-server/common"
+	"read-test-server/dao"
 	"read-test-server/router"
 )
 
@@ -38,6 +40,8 @@ func main() {
 	} else if err = json.ParseJsonFromBytes(confData, &conf); err != nil {
 		log.Panic("parse config file failed", zap.Error(err))
 	}
+	dao.InitMysqlDb(conf.Mysql, customerLog)
+	dao.AutoMigration()
 
 	r := gin.Default()
 	router.RegisterRouter(r)
@@ -114,4 +118,18 @@ func main() {
 	//	log.Fatalf("upload failed, %v", err)
 	//}
 	//fmt.Printf("??Object??, %#v, 耗时: %v", object, time.Now().Sub(begin))
+}
+
+func customerLog(msg string, items ...interface{}) {
+	if len(items)%2 != 0 {
+		fmt.Print("\n" + msg + " ")
+		fmt.Print(items...)
+		fmt.Print("\n")
+		return
+	}
+	var zaps []zap.Field
+	for i := 0; i < len(items); i += 2 {
+		zaps = append(zaps, zap.Any(fmt.Sprintf("%v", items[i]), items[i+1]))
+	}
+	common.Log.Info(msg, zaps...)
 }
