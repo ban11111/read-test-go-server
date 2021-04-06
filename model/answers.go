@@ -13,10 +13,11 @@ type Base struct {
 // 定义用户答题结果的 数据库表
 type Answer struct {
 	Base
-	PaperName    string `gorm:"size:50;index:idx_paper_result,priority:2" json:"paper_name"`
-	PaperVersion string `gorm:"size:10;index:idx_paper_result,priority:3" json:"paper_version"`
-	Uid          uint   `gorm:"index:idx_paper_result,priority:1" json:"uid"`
-	WordIndex    int    `gorm:"index:idx_paper_result,priority:1" json:"word_index"`
-	Word         string `gorm:"size:50" json:"word"`
-	FileUrl      string `gorm:"size:255" json:"file_url"`
+	PaperId     uint   `gorm:"index:idx_paper_result,priority:2" json:"paper_id"` // 关联 Paper表 id
+	Uid         uint   `gorm:"index:idx_paper_result,priority:1" json:"uid"`
+	WordIndex   int    `gorm:"index:idx_paper_result,priority:3" json:"word_index"`
+	Word        string `gorm:"size:50" json:"word"`
+	AudioUrl    string `gorm:"size:255" json:"audio_url"`
+	Translation string `gorm:"size:255" json:"translation"`
+	Duration    int    `json:"duration"` // 该题耗时, 单位: 毫秒
 }

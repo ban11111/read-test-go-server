@@ -25,4 +25,10 @@ func InitAudioUploadRoot() {
 
 type ServerConfig struct {
 	Mysql *mysql.DbConfig `json:"mysql"`
+	Admin *AdminConfig    `json:"admin"`
+}
+
+type AdminConfig struct {
+	UserName        string `json:"user_name"`
+	EncodedPassword string `json:"encoded_password"`
 }

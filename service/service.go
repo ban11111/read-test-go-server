@@ -1,11 +1,14 @@
 package service
 
 import (
+	"errors"
+	"gorm.io/gorm"
 	"io"
 	"mime/multipart"
 	"os"
 	"path"
 	"read-test-server/common"
+	"read-test-server/dao"
 	"read-test-server/model"
 )
 
@@ -43,7 +46,36 @@ func SaveFile(fileHeader *multipart.FileHeader, req *model.UploadReq) (fileUrl s
 	return
 }
 
+// 保存每一题的答题结果
+func SaveAnswer(req *model.UploadReq, audioUrl string) error {
+	return dao.CreateAnswer(&model.Answer{
+		PaperId:     req.PaperId,
+		Uid:         req.Uid,
+		WordIndex:   req.WordIndex,
+		Word:        req.Word,
+		AudioUrl:    audioUrl,
+		Translation: req.Translation,
+		Duration:    req.Duration,
+	})
+}
+
 // 注册
-func SignUp() (err error) {
+func SignUp(req *model.SignUpReq) (err error) {
+	err = dao.CreateUser(&model.User{
+		Email:            req.Email,
+		Name:             req.Name,
+		ChineseClass:     req.ChineseClass,
+		HksLevel:         req.HksLevel,
+		EthnicBackground: req.EthnicBackground,
+	})
+	return
+}
+
+// 登录
+func SignIn(email string) (needSignUp bool, user *model.User, err error) {
+	user, err = dao.QueryUserByEmail(email)
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return true, nil, nil
+	}
 	return
 }

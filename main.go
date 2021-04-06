@@ -44,7 +44,7 @@ func main() {
 	dao.AutoMigration()
 
 	r := gin.Default()
-	router.RegisterRouter(r)
+	router.RegisterRouter(r, conf.Admin)
 	log.Info("start gin server...")
 	if err := r.Run(":1234"); err != nil {
 		panic(err)

@@ -6,7 +6,7 @@ import (
 	"read-test-server/handler"
 )
 
-func RegisterRouter(r *gin.Engine) {
+func RegisterRouter(r *gin.Engine, adminConf *common.AdminConfig) {
 
 	r.Static("file", common.AudioUploadRoot)
 	v1 := r.Group("/api/v1")
@@ -22,9 +22,11 @@ func RegisterRouter(r *gin.Engine) {
 
 	admin := v1.Group("/admin")
 	{
-		// todo 新增或编辑paper
-		admin.POST("/add_or_update_paper")
-		// todo
-		admin.POST("/add_or_update_paper")
+		// admin 登录, 服务器采用 https, 因此密码传输在前端就不再额外处理了
+		admin.POST("/login", handler.AdminLoginHandler(adminConf))
+		// 新增paper
+		admin.POST("/add_paper", handler.AddNewPaperHandler)
+		// 修改paper
+		admin.POST("/edit_paper", handler.EditPaperHandler)
 	}
 }

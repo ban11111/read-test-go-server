@@ -2,16 +2,19 @@ package handler
 
 import (
 	"errors"
-	"fmt"
+	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
+	"read-test-server/common"
 	"read-test-server/model"
 	"read-test-server/service"
-
-	"github.com/gin-gonic/gin"
-	"read-test-server/common"
 )
 
-var ErrUploadFailed = errors.New("audio upload failed, please refresh")
+// 这边定义返回给用户的报错信息
+var ErrUploadFailed = errors.New("uploading audio failed, please refresh or try again later")
+var ErrSaveAnswerFailed = errors.New("saving answer failed, please refresh or try again later")
+var ErrParamInvalid = errors.New("param invalid, please contact web manager")
+var ErrWrongUserName = errors.New("wrong user_name")
+var ErrWrongPassword = errors.New("wrong password")
 
 // 上传音频接口
 func UploadHandler(c *gin.Context) {
@@ -25,67 +28,87 @@ func UploadHandler(c *gin.Context) {
 		common.RenderFail(c, err)
 		return
 	}
-	fileUrl, err := service.SaveFile(fileHeader, req)
+	audioUrl, err := service.SaveFile(fileHeader, req)
 	if err != nil {
 		common.Log.Error("saveFile failed", zap.Error(err))
 		common.RenderFail(c, ErrUploadFailed)
 		return
 	}
 
-	fmt.Println("fileUrl:", fileUrl)
-	// todo: 保存数据
+	common.Log.Debug("audioUrl:", zap.String("url", audioUrl))
+	if err = service.SaveAnswer(req, audioUrl); err != nil {
+		common.RenderFail(c, ErrSaveAnswerFailed)
+		return
+	}
 
 	common.RenderSuccess(c)
 }
 
-func parseUploadParam(c *gin.Context) (*model.UploadReq, error) {
-	var req model.UploadReq
-	if paperName := c.PostForm("paper_name"); paperName != "" {
-		req.PaperName = paperName
-	} else {
-		return nil, errors.New("param paper_name is empty")
-	}
-	if paperName := c.PostForm("paper_version"); paperName != "" {
-		req.PaperName = paperName
-	} else {
-		return nil, errors.New("param paper_version is empty")
-	}
-	if paperName := c.PostForm("uid"); paperName != "" {
-		req.PaperName = paperName
-	} else {
-		return nil, errors.New("param uid is empty")
-	}
-	if paperName := c.PostForm("word_index"); paperName != "" {
-		req.PaperName = paperName
-	} else {
-		return nil, errors.New("param word_index is empty")
-	}
-	if paperName := c.PostForm("word"); paperName != "" {
-		req.PaperName = paperName
-	} else {
-		return nil, errors.New("param word is empty")
-	}
-	if paperName := c.PostForm("duration"); paperName != "" {
-		req.PaperName = paperName
-	} else {
-		return nil, errors.New("param duration is empty")
-	}
-	if paperName := c.PostForm("file_ext"); paperName != "" {
-		req.PaperName = paperName
-	} else {
-		return nil, errors.New("param file_ext is empty")
-	}
-	return &req, nil
-}
-
 func SignInHandler(c *gin.Context) {
-	// todo
+	var req model.SignInReq
+	if err := c.BindJSON(&req); err != nil {
+		common.Log.Error("SignInHandler.BindJSON()", zap.Error(err))
+		common.RenderFail(c, ErrParamInvalid)
+		return
+	}
 }
 
 func SignUpHandler(c *gin.Context) {
-	// todo
-	if err := service.SignUp(); err != nil {
+	var req model.SignUpReq
+	if err := c.BindJSON(&req); err != nil {
+		common.Log.Error("SignUpHandler.BindJSON()", zap.Error(err))
+		common.RenderFail(c, ErrParamInvalid)
+		return
+	}
+	if err := req.ParamCheck(); err != nil {
 		common.RenderFail(c, err)
 		return
 	}
+	if err := service.SignUp(&req); err != nil {
+		common.RenderFail(c, err)
+		return
+	}
+}
+
+// admin 登录接口
+func AdminLoginHandler(adminConf *common.AdminConfig) func(c *gin.Context) {
+	return func(c *gin.Context) {
+		var req model.AdminLogin
+		if err := c.BindJSON(&req); err != nil {
+			common.RenderFail(c, ErrParamInvalid)
+			return
+		}
+		if req.UserName != adminConf.UserName {
+			common.RenderFail(c, ErrWrongUserName)
+			return
+		}
+		if !common.MatchPass(req.Password, adminConf.EncodedPassword) {
+			common.RenderFail(c, ErrWrongPassword)
+		}
+		common.RenderSuccess(c)
+	}
+}
+
+// ================= todo 试卷相关接口 ===================
+
+// 新增试卷
+func AddNewPaperHandler(c *gin.Context) {
+
+}
+
+// 修改试卷
+// ps: 每次修改其实是重新创建一个试卷, 并且版本号更新
+func EditPaperHandler(c *gin.Context) {
+
+}
+
+// 查询试卷列表, 直接 按id倒序 全部查出来扔前端就行, 暂时不考虑分页
+func QueryPapersHandler(c *gin.Context) {
+
+}
+
+// ================= todo 统计相关接口 ===================
+
+func GetStatistics(c *gin.Context) {
+
 }
