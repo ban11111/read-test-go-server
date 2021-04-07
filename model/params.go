@@ -59,11 +59,19 @@ func (req *SignUpReq) ParamCheck() error {
 	if req.EthnicBackground == "" {
 		return errors.New("please input your EthnicBackground")
 	}
+	return nil
 }
 
 // 登录请求参数
 type SignInReq struct {
 	Email string `json:"email"`
+}
+
+func (req *SignInReq) ParamCheck() error {
+	if req.Email == "" {
+		return errors.New("please input your Email")
+	}
+	return nil
 }
 
 // 登录返回参数

@@ -51,6 +51,16 @@ func SignInHandler(c *gin.Context) {
 		common.RenderFail(c, ErrParamInvalid)
 		return
 	}
+	if err := req.ParamCheck(); err != nil {
+		common.RenderFail(c, err)
+		return
+	}
+	userNotExist, user, err := service.SignIn(req.Email)
+	if err != nil {
+		common.RenderFail(c, err)
+		return
+	}
+	common.RenderSuccess(c, map[string]interface{}{"user_not_exist": userNotExist, "user": user})
 }
 
 func SignUpHandler(c *gin.Context) {
@@ -68,6 +78,7 @@ func SignUpHandler(c *gin.Context) {
 		common.RenderFail(c, err)
 		return
 	}
+	common.RenderSuccess(c)
 }
 
 // admin 登录接口
