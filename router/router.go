@@ -18,6 +18,8 @@ func RegisterRouter(r *gin.Engine, adminConf *common.AdminConfig) {
 		v1.POST("sign_in", handler.SignInHandler)
 		// 注册
 		v1.POST("sign_up", handler.SignUpHandler)
+		// 获取基本信息
+		v1.POST("get_basic_info", handler.GetBasicInfoHandler)
 	}
 
 	admin := v1.Group("/admin")
@@ -28,5 +30,17 @@ func RegisterRouter(r *gin.Engine, adminConf *common.AdminConfig) {
 		admin.POST("/add_paper", handler.AddNewPaperHandler)
 		// 修改paper
 		admin.POST("/edit_paper", handler.EditPaperHandler)
+		// 修改paper
+		admin.POST("/query_papers", handler.QueryPapersHandler)
+		// 查询用户列表
+		admin.POST("/query_users", handler.QueryUsersHandler)
+		// 查询用户做过的试卷
+		admin.POST("/query_user_paper")
+		// 查询答题结果 (用户-试卷 维度)
+		admin.POST("/query_answers", handler.QueryAnswersHandler)
+		// 更新 global setting
+		admin.POST("/query_settings", handler.QueryGlobalSettingsHandler)
+		// 更新 global setting
+		admin.POST("/update_setting", handler.UpdateGlobalSettingHandler)
 	}
 }

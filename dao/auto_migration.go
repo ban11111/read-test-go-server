@@ -16,4 +16,10 @@ func AutoMigration() {
 	if err := db.GetDB().AutoMigrate(&model.Answer{}); err != nil {
 		common.Log.Panic("AutoMigration.Answer{}", zap.Error(err))
 	}
+	if err := db.GetDB().AutoMigrate(&model.GlobalSetting{}); err != nil {
+		common.Log.Panic("AutoMigration.GlobalSetting{}", zap.Error(err))
+	}
+	if err := db.GetDB().AutoMigrate(&model.PaperSnapshot{}); err != nil {
+		common.Log.Panic("AutoMigration.PaperSnapshot{}", zap.Error(err))
+	}
 }

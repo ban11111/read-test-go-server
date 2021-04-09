@@ -2,8 +2,10 @@ package handler
 
 import (
 	"errors"
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
+	"net/http"
 	"read-test-server/common"
 	"read-test-server/model"
 	"read-test-server/service"
@@ -18,8 +20,12 @@ var ErrWrongPassword = errors.New("wrong password")
 
 // 上传音频接口
 func UploadHandler(c *gin.Context) {
+	var withFile = true
 	fileHeader, err := c.FormFile("record")
-	if err != nil {
+	if errors.Is(err, http.ErrMissingFile) {
+		withFile = false
+	}
+	if err != nil && withFile {
 		common.RenderFail(c, err)
 		return
 	}
@@ -28,11 +34,14 @@ func UploadHandler(c *gin.Context) {
 		common.RenderFail(c, err)
 		return
 	}
-	audioUrl, err := service.SaveFile(fileHeader, req)
-	if err != nil {
-		common.Log.Error("saveFile failed", zap.Error(err))
-		common.RenderFail(c, ErrUploadFailed)
-		return
+	audioUrl := ""
+	if withFile {
+		audioUrl, err = service.SaveFile(fileHeader, req)
+		if err != nil {
+			common.Log.Error("saveFile failed", zap.Error(err))
+			common.RenderFail(c, ErrUploadFailed)
+			return
+		}
 	}
 
 	common.Log.Debug("audioUrl:", zap.String("url", audioUrl))
@@ -56,6 +65,7 @@ func SignInHandler(c *gin.Context) {
 		return
 	}
 	userNotExist, user, err := service.SignIn(req.Email)
+	fmt.Println("?????", userNotExist, user)
 	if err != nil {
 		common.RenderFail(c, err)
 		return
@@ -74,11 +84,23 @@ func SignUpHandler(c *gin.Context) {
 		common.RenderFail(c, err)
 		return
 	}
-	if err := service.SignUp(&req); err != nil {
+	user, err := service.SignUp(&req)
+	if err != nil {
 		common.RenderFail(c, err)
 		return
 	}
-	common.RenderSuccess(c)
+	common.RenderSuccess(c, map[string]interface{}{"user": user})
+}
+
+func GetBasicInfoHandler(c *gin.Context) {
+	var resp model.BasicInfoResp
+	var err error
+	resp.CurrentPaper, resp.GlobalSetting, err = service.GetBasicInfo()
+	if err != nil {
+		common.RenderFail(c, err)
+		return
+	}
+	common.RenderSuccess(c, &resp)
 }
 
 // admin 登录接口
@@ -89,7 +111,8 @@ func AdminLoginHandler(adminConf *common.AdminConfig) func(c *gin.Context) {
 			common.RenderFail(c, ErrParamInvalid)
 			return
 		}
-		if req.UserName != adminConf.UserName {
+		if req.Username != adminConf.Username {
+			common.Log.Error("AdminLoginHandler", zap.String("req.Username", req.Username), zap.String("conf.Username", adminConf.Username))
 			common.RenderFail(c, ErrWrongUserName)
 			return
 		}
@@ -110,12 +133,72 @@ func AddNewPaperHandler(c *gin.Context) {
 // 修改试卷
 // ps: 每次修改其实是重新创建一个试卷, 并且版本号更新
 func EditPaperHandler(c *gin.Context) {
-
+	var req model.Paper
+	if err := c.BindJSON(&req); err != nil {
+		common.RenderFail(c, ErrParamInvalid)
+		return
+	}
+	if err := service.EditPaper(&req); err != nil {
+		common.RenderFail(c, err)
+		return
+	}
+	common.RenderSuccess(c)
 }
 
 // 查询试卷列表, 直接 按id倒序 全部查出来扔前端就行, 暂时不考虑分页
 func QueryPapersHandler(c *gin.Context) {
+	papers, activePaper, err := service.QueryPapers()
+	if err != nil {
+		common.RenderFail(c, err)
+		return
+	}
+	common.RenderSuccess(c, gin.H{"papers": papers, "active_paper": activePaper})
+}
 
+func QueryUsersHandler(c *gin.Context) {
+	users, err := service.QueryUsers()
+	if err != nil {
+		common.RenderFail(c, err)
+		return
+	}
+	common.RenderSuccess(c, users)
+}
+
+func QueryAnswersHandler(c *gin.Context) {
+	var req model.GetAnswersReq
+	if err := c.BindJSON(&req); err != nil {
+		common.RenderFail(c, ErrParamInvalid)
+		return
+	}
+	answers, err := service.QueryAnswers(&req)
+	if err != nil {
+		common.RenderFail(c, err)
+		return
+	}
+	common.RenderSuccess(c, answers)
+}
+
+func QueryGlobalSettingsHandler(c *gin.Context) {
+	settings, err := service.QueryGlobalSettings()
+	if err != nil {
+		common.RenderFail(c, err)
+		return
+	}
+	common.RenderSuccess(c, settings)
+}
+
+func UpdateGlobalSettingHandler(c *gin.Context) {
+	var req map[string]interface{}
+
+	if err := c.BindJSON(&req); err != nil {
+		common.RenderFail(c, ErrParamInvalid)
+		return
+	}
+	if err := service.UpdateGlobalSetting(req); err != nil {
+		common.RenderFail(c, err)
+		return
+	}
+	common.RenderSuccess(c)
 }
 
 // ================= todo 统计相关接口 ===================

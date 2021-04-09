@@ -47,7 +47,7 @@ func parseUploadParam(c *gin.Context) (*model.UploadReq, error) {
 		if err != nil {
 			return nil, errors.New("param word_index is not a valid number")
 		}
-		if parseInt <= 0 {
+		if parseInt < 0 {
 			return nil, errors.New("param word_index is empty")
 		}
 		req.WordIndex = int(parseInt)
@@ -57,6 +57,7 @@ func parseUploadParam(c *gin.Context) (*model.UploadReq, error) {
 	if req.Word = c.PostForm("word"); req.Word == "" {
 		return nil, errors.New("param word is empty")
 	}
+	req.Translation = c.PostForm("translation")
 	if duration := c.PostForm("duration"); duration != "" {
 		parseInt, err := strconv.ParseInt(duration, 10, 64)
 		if err != nil {

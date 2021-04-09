@@ -29,6 +29,6 @@ type ServerConfig struct {
 }
 
 type AdminConfig struct {
-	UserName        string `json:"user_name"`
+	Username        string `json:"username"`
 	EncodedPassword string `json:"encoded_password"`
 }

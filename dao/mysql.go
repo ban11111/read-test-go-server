@@ -8,7 +8,18 @@ import (
 var db mysql.DB
 
 func InitMysqlDb(dbConfig *mysql.DbConfig, log mysql.CustomerLog) {
+	utilDb := mysql.MakeDBUtil(dbConfig, log)
+	utilDb.CreateDB()
 	db = mysql.MakeDB(dbConfig, log)
+}
+
+func QueryGlobalSettings() ([]*model.GlobalSetting, error) {
+	var settings []*model.GlobalSetting
+	return settings, db.GetDB().Model(&model.GlobalSetting{}).Find(&settings).Error
+}
+
+func UpdateGlobalSetting(set *model.GlobalSetting) error {
+	return db.GetDB().Model(&model.GlobalSetting{}).Where("`key`=?", set.Key).UpdateColumn("value", set.Value).Error
 }
 
 func CreateUser(user *model.User) error {
@@ -30,14 +41,29 @@ func CreatePaper(paper *model.Paper) error {
 }
 
 func UpdatePaper(paper *model.Paper) error {
-	return db.GetDB().Updates(paper).Error
+	return db.GetDB().Where("id=?", paper.Id).Updates(paper).Error
+}
+
+func CreatePaperSnapshot(paper *model.PaperSnapshot) error {
+	return db.GetDB().Create(paper).Error
+}
+
+func QueryPaperById(id uint) (*model.Paper, error) {
+	var paper model.Paper
+	return &paper, db.GetDB().Model(&model.Paper{}).Where("id=?", id).Last(&paper).Error
 }
 
 func QueryPapers() ([]*model.Paper, error) {
 	var papers []*model.Paper
-	return papers, db.GetDB().Model(&model.Paper{}).Find(&papers).Error
+	return papers, db.GetDB().Model(&model.Paper{}).Order("id desc").Find(&papers).Error
 }
 
+func QueryCurrentPaper() (*model.Paper, error) {
+	var paper model.Paper
+	return &paper, db.GetDB().Model(&model.Paper{}).Where("inuse=?", true).Last(&paper).Error
+}
+
+// 查询某个用户做了哪些试卷
 func QueryPapersByUid(uid uint) ([]*model.Paper, error) {
 	var papers []*model.Paper
 	subQuery := db.GetDB().Model(&model.Answer{}).Select("distinct(paper_id)").Where("uid=?", uid)

@@ -20,12 +20,12 @@ type UploadReq struct {
 	Duration     int    `json:"duration"`    // 单位: 毫秒
 }
 
-// 试卷名-试卷版本-用户id-题目顺序-字词-耗时
+// 试卷名-试卷版本-用户id-题目顺序-字词
 func (req *UploadReq) GetFileName() string {
 	reg := regexp.MustCompile("[ \t]+")
 	paperName := reg.ReplaceAllString(req.PaperName, "_")
-	return fmt.Sprintf("%s-%s-%d-%d-%s-%s.%s", paperName, req.PaperVersion, req.Uid,
-		req.WordIndex, req.Word, req.Duration, req.FileExt)
+	return fmt.Sprintf("%s-%s-%d-%d-%s.%s", paperName, req.PaperVersion, req.Uid,
+		req.WordIndex, req.Word, req.FileExt)
 }
 
 func (req *UploadReq) GetMiddlePath() string {
@@ -80,6 +80,17 @@ type SignInResp struct {
 }
 
 type AdminLogin struct {
-	UserName string `json:"user_name"`
+	Username string `json:"username"`
 	Password string `json:"password"`
+}
+
+type BasicInfoResp struct {
+	CurrentPaper  *Paper                 `json:"current_paper"`
+	GlobalSetting map[string]interface{} `json:"global_setting"`
+}
+
+type GetAnswersReq struct {
+	Uid          uint  `json:"uid"`
+	PaperId      uint  `json:"paper_id"`
+	PaperVersion int16 `json:"paper_version"`
 }
