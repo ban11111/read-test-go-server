@@ -104,10 +104,10 @@ func GetBasicInfo(req *model.BasicInfoReq) (resp *model.BasicInfoResp, err error
 	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 		return
 	}
-	err = nil
-	if progress != nil {
+	if !errors.Is(err, gorm.ErrRecordNotFound) {
 		resp.ProgressIndex = progress.WordIndex
 	}
+	err = nil
 	return
 }
 
