@@ -82,3 +82,8 @@ func QueryAnswersByUidAndPaper(uid uint, paperId uint) ([]*model.Answer, error) 
 	var answers []*model.Answer
 	return answers, db.GetDB().Model(&model.Answer{}).Where("uid=? and paper_id=?", uid, paperId).Order("word_index").Find(&answers).Error
 }
+
+func QueryAnswerProgress(uid uint, paperId uint) (*model.Answer, error) {
+	var answer model.Answer
+	return &answer, db.GetDB().Model(&model.Answer{}).Where("uid=? and paper_id=?", uid, paperId).Order("word_index desc").First(&answer).Error
+}

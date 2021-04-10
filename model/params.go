@@ -84,9 +84,14 @@ type AdminLogin struct {
 	Password string `json:"password"`
 }
 
+type BasicInfoReq struct {
+	Uid uint `json:"uid"`
+}
+
 type BasicInfoResp struct {
 	CurrentPaper  *Paper                 `json:"current_paper"`
 	GlobalSetting map[string]interface{} `json:"global_setting"`
+	ProgressIndex int                    `json:"progress_index"`
 }
 
 type GetAnswersReq struct {

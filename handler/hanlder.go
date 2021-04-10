@@ -2,7 +2,6 @@ package handler
 
 import (
 	"errors"
-	"fmt"
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 	"net/http"
@@ -65,7 +64,6 @@ func SignInHandler(c *gin.Context) {
 		return
 	}
 	userNotExist, user, err := service.SignIn(req.Email)
-	fmt.Println("?????", userNotExist, user)
 	if err != nil {
 		common.RenderFail(c, err)
 		return
@@ -93,9 +91,13 @@ func SignUpHandler(c *gin.Context) {
 }
 
 func GetBasicInfoHandler(c *gin.Context) {
-	var resp model.BasicInfoResp
-	var err error
-	resp.CurrentPaper, resp.GlobalSetting, err = service.GetBasicInfo()
+	var req model.BasicInfoReq
+	if err := c.BindJSON(&req); err!= nil {
+		common.RenderFail(c, ErrParamInvalid)
+		return
+	}
+
+	resp, err := service.GetBasicInfo(&req)
 	if err != nil {
 		common.RenderFail(c, err)
 		return
@@ -118,6 +120,7 @@ func AdminLoginHandler(adminConf *common.AdminConfig) func(c *gin.Context) {
 		}
 		if !common.MatchPass(req.Password, adminConf.EncodedPassword) {
 			common.RenderFail(c, ErrWrongPassword)
+			return
 		}
 		common.RenderSuccess(c)
 	}

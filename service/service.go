@@ -83,20 +83,27 @@ func SignIn(email string) (needSignUp bool, user *model.User, err error) {
 	return
 }
 
-func GetBasicInfo() (currentPaper *model.Paper, setting map[string]interface{}, err error) {
-	if currentPaper, err = dao.QueryCurrentPaper(); err != nil {
+func GetBasicInfo(req *model.BasicInfoReq) (resp *model.BasicInfoResp, err error) {
+	resp = &model.BasicInfoResp{
+		GlobalSetting: make(map[string]interface{}),
+	}
+	if resp.CurrentPaper, err = dao.QueryCurrentPaper(); err != nil {
 		return
 	}
 	settings, err := dao.QueryGlobalSettings()
-	setting = make(map[string]interface{})
 	for _, set := range settings {
 		parseInt, parseErr := strconv.ParseInt(set.Value, 10, 32)
 		if parseErr != nil {
 			err = parseErr
 			return
 		}
-		setting[set.Key] = parseInt
+		resp.GlobalSetting[set.Key] = parseInt
 	}
+	progress, err := dao.QueryAnswerProgress(req.Uid, resp.CurrentPaper.Id)
+	if err != nil {
+		return
+	}
+	resp.ProgressIndex = progress.WordIndex
 	return
 }
 
