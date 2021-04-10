@@ -23,7 +23,16 @@ func UpdateGlobalSetting(set *model.GlobalSetting) error {
 }
 
 func CreateUser(user *model.User) error {
-	return db.GetDB().Create(user).Error
+	tx := db.GetDB().Begin()
+	defer tx.Rollback()
+	var n int64
+	if err := tx.Model(&model.User{}).Where("email=?", user.Email).Count(&n).Error; err != nil {
+		return err
+	}
+	if err := db.GetDB().Create(user).Error; err != nil {
+		return err
+	}
+	return tx.Commit().Error
 }
 
 func QueryUsers() ([]*model.User, error) {
