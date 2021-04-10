@@ -100,10 +100,12 @@ func GetBasicInfo(req *model.BasicInfoReq) (resp *model.BasicInfoResp, err error
 		resp.GlobalSetting[set.Key] = parseInt
 	}
 	progress, err := dao.QueryAnswerProgress(req.Uid, resp.CurrentPaper.Id)
-	if err != nil {
+	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound){
 		return
 	}
-	resp.ProgressIndex = progress.WordIndex
+	if progress != nil {
+		resp.ProgressIndex = progress.WordIndex
+	}
 	return
 }
 
