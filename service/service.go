@@ -86,6 +86,7 @@ func SignIn(email string) (needSignUp bool, user *model.User, err error) {
 func GetBasicInfo(req *model.BasicInfoReq) (resp *model.BasicInfoResp, err error) {
 	resp = &model.BasicInfoResp{
 		GlobalSetting: make(map[string]interface{}),
+		ProgressIndex: -1,
 	}
 	if resp.CurrentPaper, err = dao.QueryCurrentPaper(); err != nil {
 		return
