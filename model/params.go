@@ -99,3 +99,7 @@ type GetAnswersReq struct {
 	PaperId      uint  `json:"paper_id"`
 	PaperVersion int16 `json:"paper_version"`
 }
+
+type DeleteUserReq struct {
+	Uid uint `json:"uid"`
+}

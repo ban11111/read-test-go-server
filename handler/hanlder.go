@@ -167,6 +167,20 @@ func QueryUsersHandler(c *gin.Context) {
 	common.RenderSuccess(c, users)
 }
 
+func DeleteUsersHandler(c *gin.Context) {
+	var req model.DeleteUserReq
+	if err := c.BindJSON(&req); err != nil {
+		common.RenderFail(c, ErrParamInvalid)
+		return
+	}
+	err := service.DeleteUser(req.Uid)
+	if err != nil {
+		common.RenderFail(c, err)
+		return
+	}
+	common.RenderSuccess(c)
+}
+
 func QueryAnswersHandler(c *gin.Context) {
 	var req model.GetAnswersReq
 	if err := c.BindJSON(&req); err != nil {

@@ -151,11 +151,18 @@ func QueryUsers() ([]*model.User, error) {
 	return dao.QueryUsers()
 }
 
+func DeleteUser(uid uint) error {
+	return dao.DeleteUser(uid)
+}
+
 func QueryAnswers(req *model.GetAnswersReq) ([]*model.Answer, error) {
 	return dao.QueryAnswersByUidAndPaper(req.Uid, req.PaperId)
 }
 
 func ClearAnswers(req *model.GetAnswersReq) error {
+	if req.PaperId <= 0 {
+		return dao.DeleteAnswersByUid(req.Uid)
+	}
 	return dao.DeleteAnswersByUidAndPaper(req.Uid, req.PaperId)
 }
 

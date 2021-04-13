@@ -40,6 +40,22 @@ func QueryUsers() ([]*model.User, error) {
 	return users, db.GetDB().Model(&model.User{}).Find(&users).Error
 }
 
+func DeleteUser(uid uint) error {
+	var user model.User
+	if err := db.GetDB().Model(&model.User{}).Where("id=?", uid).Last(&user).Error; err != nil {
+		return err
+	}
+	tx := db.GetDB().Begin()
+	defer tx.Rollback()
+	if err := tx.Model(&model.User{}).Where("id=?", uid).Unscoped().Delete(&model.User{}).Error; err != nil {
+		return err
+	}
+	if err := tx.Model(&model.Answer{}).Where("uid=?", uid).Unscoped().Delete(&model.Answer{}).Error; err != nil {
+		return err
+	}
+	return tx.Commit().Error
+}
+
 func QueryUserByEmail(email string) (*model.User, error) {
 	var user model.User
 	return &user, db.GetDB().Model(&user).Where("email=?", email).Last(&user).Error
@@ -92,7 +108,11 @@ func QueryAnswersByUidAndPaper(uid uint, paperId uint) ([]*model.Answer, error) 
 	return answers, db.GetDB().Model(&model.Answer{}).Where("uid=? and paper_id=?", uid, paperId).Order("word_index").Find(&answers).Error
 }
 
-func DeleteAnswersByUidAndPaper(uid uint, paperId uint) error {
+func DeleteAnswersByUid(uid uint) error {
+	return db.GetDB().Model(&model.Answer{}).Where("uid=?", uid).Unscoped().Delete(&model.Answer{}).Error
+}
+
+func DeleteAnswersByUidAndPaper(uid, paperId uint) error {
 	return db.GetDB().Model(&model.Answer{}).Where("uid=? and paper_id=?", uid, paperId).Unscoped().Delete(&model.Answer{}).Error
 }
 

@@ -34,6 +34,8 @@ func RegisterRouter(r *gin.Engine, adminConf *common.AdminConfig) {
 		admin.POST("/query_papers", handler.QueryPapersHandler)
 		// 查询用户列表
 		admin.POST("/query_users", handler.QueryUsersHandler)
+		// 查询用户列表
+		admin.POST("/delete_user", handler.DeleteUsersHandler)
 		// 查询用户做过的试卷
 		admin.POST("/query_user_paper")
 		// 查询答题结果 (用户-试卷 维度)
