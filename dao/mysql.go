@@ -92,6 +92,10 @@ func QueryAnswersByUidAndPaper(uid uint, paperId uint) ([]*model.Answer, error) 
 	return answers, db.GetDB().Model(&model.Answer{}).Where("uid=? and paper_id=?", uid, paperId).Order("word_index").Find(&answers).Error
 }
 
+func DeleteAnswersByUidAndPaper(uid uint, paperId uint) error {
+	return db.GetDB().Model(&model.Answer{}).Where("uid=? and paper_id=?", uid, paperId).Unscoped().Delete(&model.Answer{}).Error
+}
+
 func QueryAnswerProgress(uid uint, paperId uint) (*model.Answer, error) {
 	var answer model.Answer
 	return &answer, db.GetDB().Model(&model.Answer{}).Where("uid=? and paper_id=?", uid, paperId).Order("word_index desc").First(&answer).Error

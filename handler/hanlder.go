@@ -92,7 +92,7 @@ func SignUpHandler(c *gin.Context) {
 
 func GetBasicInfoHandler(c *gin.Context) {
 	var req model.BasicInfoReq
-	if err := c.BindJSON(&req); err!= nil {
+	if err := c.BindJSON(&req); err != nil {
 		common.RenderFail(c, ErrParamInvalid)
 		return
 	}
@@ -179,6 +179,19 @@ func QueryAnswersHandler(c *gin.Context) {
 		return
 	}
 	common.RenderSuccess(c, answers)
+}
+
+func ClearAnswersHandler(c *gin.Context) {
+	var req model.GetAnswersReq
+	if err := c.BindJSON(&req); err != nil {
+		common.RenderFail(c, ErrParamInvalid)
+		return
+	}
+	if err := service.ClearAnswers(&req); err != nil {
+		common.RenderFail(c, err)
+		return
+	}
+	common.RenderSuccess(c)
 }
 
 func QueryGlobalSettingsHandler(c *gin.Context) {

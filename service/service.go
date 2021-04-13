@@ -155,6 +155,10 @@ func QueryAnswers(req *model.GetAnswersReq) ([]*model.Answer, error) {
 	return dao.QueryAnswersByUidAndPaper(req.Uid, req.PaperId)
 }
 
+func ClearAnswers(req *model.GetAnswersReq) error {
+	return dao.DeleteAnswersByUidAndPaper(req.Uid, req.PaperId)
+}
+
 func QueryGlobalSettings() (map[string]interface{}, error) {
 	settings, err := dao.QueryGlobalSettings()
 	if err != nil {

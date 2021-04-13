@@ -38,6 +38,8 @@ func RegisterRouter(r *gin.Engine, adminConf *common.AdminConfig) {
 		admin.POST("/query_user_paper")
 		// 查询答题结果 (用户-试卷 维度)
 		admin.POST("/query_answers", handler.QueryAnswersHandler)
+		// 删除答题结果 (用户-试卷 维度)
+		admin.POST("/clear_answers", handler.ClearAnswersHandler)
 		// 更新 global setting
 		admin.POST("/query_settings", handler.QueryGlobalSettingsHandler)
 		// 更新 global setting
