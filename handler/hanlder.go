@@ -122,7 +122,8 @@ func AdminLoginHandler(adminConf *common.AdminConfig) func(c *gin.Context) {
 			common.RenderFail(c, ErrWrongPassword)
 			return
 		}
-		common.RenderSuccess(c)
+		// 偷懒了, token 直接放加密后的密码得了
+		common.RenderSuccess(c, gin.H{"token": adminConf.EncodedPassword})
 	}
 }
 
