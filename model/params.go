@@ -103,3 +103,33 @@ type GetAnswersReq struct {
 type DeleteUserReq struct {
 	Uid uint `json:"uid"`
 }
+
+type AddPaperReq struct {
+	Name string `json:"name"`
+	Words string `json:"words"`
+	Interval int `json:"interval"`
+}
+
+func (req *AddPaperReq) ParamCheck() error {
+	if req.Name == "" {
+		return errors.New("please input Paper Name")
+	}
+	if req.Interval <= 0 {
+		return errors.New("please input Interval")
+	}
+	if req.Words == "" {
+		return errors.New("please input Words")
+	}
+	return nil
+}
+
+type PublishPaperReq struct {
+	Pid uint `json:"pid"`
+}
+
+func (req *PublishPaperReq) ParamCheck() error {
+	if req.Pid <= 0 {
+		return errors.New("empty pid")
+	}
+	return nil
+}

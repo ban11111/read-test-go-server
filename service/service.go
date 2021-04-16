@@ -126,6 +126,19 @@ func QueryPapers() (papers []*model.Paper, activePaper *model.Paper, err error) 
 	return
 }
 
+func AddPaper(req *model.AddPaperReq) error {
+	return dao.CreatePaper(&model.Paper{
+		Name:     req.Name,
+		Version:  1,
+		Words:    req.Words,
+		Interval: req.Interval,
+	})
+}
+
+func PublishPaper(pid uint) error {
+	return dao.PublishPaper(pid)
+}
+
 func EditPaper(paper *model.Paper) error {
 	previousPaper, err := dao.QueryPaperById(paper.Id)
 	if err != nil {

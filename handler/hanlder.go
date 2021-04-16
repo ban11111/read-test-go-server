@@ -131,7 +131,37 @@ func AdminLoginHandler(adminConf *common.AdminConfig) func(c *gin.Context) {
 
 // 新增试卷
 func AddNewPaperHandler(c *gin.Context) {
+	var req model.AddPaperReq
+	if err := c.BindJSON(&req); err != nil {
+		common.RenderFail(c, ErrParamInvalid)
+		return
+	}
+	if err := req.ParamCheck(); err != nil {
+		common.RenderFail(c, err)
+		return
+	}
+	if err := service.AddPaper(&req); err != nil {
+		common.RenderFail(c, err)
+		return
+	}
+	common.RenderSuccess(c)
+}
 
+func PublishPaperHandler(c *gin.Context) {
+	var req model.PublishPaperReq
+	if err := c.BindJSON(&req); err != nil {
+		common.RenderFail(c, ErrParamInvalid)
+		return
+	}
+	if err := req.ParamCheck(); err != nil {
+		common.RenderFail(c, err)
+		return
+	}
+	if err := service.PublishPaper(req.Pid); err != nil {
+		common.RenderFail(c, err)
+		return
+	}
+	common.RenderSuccess(c)
 }
 
 // 修改试卷

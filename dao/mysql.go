@@ -1,6 +1,7 @@
 package dao
 
 import (
+	"gorm.io/gorm"
 	"read-test-server/common/gorm2/mysql"
 	"read-test-server/model"
 )
@@ -67,6 +68,25 @@ func CreatePaper(paper *model.Paper) error {
 
 func UpdatePaper(paper *model.Paper) error {
 	return db.GetDB().Where("id=?", paper.Id).Updates(paper).Error
+}
+
+func PublishPaper(pid uint) error {
+	var count int64
+	if err := db.GetDB().Model(&model.Paper{}).Where("id=?", pid).Count(&count).Error; err != nil {
+		return err
+	}
+	if count <= 0 {
+		return gorm.ErrRecordNotFound
+	}
+	tx := db.GetDB().Begin()
+	defer tx.Rollback()
+	if err := tx.Model(&model.Paper{}).Where("id <> ?", pid).UpdateColumn("inuse", false).Error; err != nil {
+		return err
+	}
+	if err := tx.Model(&model.Paper{}).Where("id = ?", pid).UpdateColumn("inuse", true).Error; err != nil {
+		return err
+	}
+	return tx.Commit().Error
 }
 
 func CreatePaperSnapshot(paper *model.PaperSnapshot) error {

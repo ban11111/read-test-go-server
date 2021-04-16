@@ -32,6 +32,8 @@ func RegisterRouter(r *gin.Engine, adminConf *common.AdminConfig) {
 	{
 		// 新增paper
 		adminAuth.POST("/add_paper", handler.AddNewPaperHandler)
+		// 发布paper
+		adminAuth.POST("/publish_paper", handler.PublishPaperHandler)
 		// 修改paper
 		adminAuth.POST("/edit_paper", handler.EditPaperHandler)
 		// 修改paper
