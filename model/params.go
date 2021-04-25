@@ -18,6 +18,7 @@ type UploadReq struct {
 	Word         string `json:"word"`
 	Translation  string `json:"translation"` // 可以为空
 	Duration     int    `json:"duration"`    // 单位: 毫秒
+	Device       string `json:"device"`      // 设备类型
 }
 
 // 试卷名-试卷版本-用户id-题目顺序-字词

@@ -24,6 +24,7 @@ const (
 func init() {
 	common.InitLogger()
 	common.InitAudioUploadRoot()
+	gin.SetMode(gin.ReleaseMode)
 }
 
 func main() {

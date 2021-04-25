@@ -58,6 +58,7 @@ func SaveAnswer(req *model.UploadReq, audioUrl string) error {
 		AudioUrl:    audioUrl,
 		Translation: req.Translation,
 		Duration:    req.Duration,
+		Device:      req.Device,
 	}, req.PaperName)
 }
 

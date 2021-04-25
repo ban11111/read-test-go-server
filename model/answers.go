@@ -20,4 +20,5 @@ type Answer struct {
 	AudioUrl    string `gorm:"size:255" json:"audio_url"`
 	Translation string `gorm:"size:255" json:"translation"`
 	Duration    int    `json:"duration"` // 该题耗时, 单位: 毫秒
+	Device      string `gorm:"size:50" json:"device"`
 }

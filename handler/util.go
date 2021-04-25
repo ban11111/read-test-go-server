@@ -70,5 +70,6 @@ func parseUploadParam(c *gin.Context) (*model.UploadReq, error) {
 	} else {
 		return nil, errors.New("param duration is empty")
 	}
+	req.Device = c.PostForm("device")
 	return &req, nil
 }
