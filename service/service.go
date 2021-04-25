@@ -58,7 +58,7 @@ func SaveAnswer(req *model.UploadReq, audioUrl string) error {
 		AudioUrl:    audioUrl,
 		Translation: req.Translation,
 		Duration:    req.Duration,
-	})
+	}, req.PaperName)
 }
 
 // 注册
@@ -160,7 +160,7 @@ func EditPaper(paper *model.Paper) error {
 	return dao.UpdatePaper(paper)
 }
 
-func QueryUsers() ([]*model.User, error) {
+func QueryUsers() ([]*model.UserInfo, error) {
 	return dao.QueryUsers()
 }
 

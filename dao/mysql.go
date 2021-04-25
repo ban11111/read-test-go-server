@@ -1,7 +1,9 @@
 package dao
 
 import (
+	"go.uber.org/zap"
 	"gorm.io/gorm"
+	"read-test-server/common"
 	"read-test-server/common/gorm2/mysql"
 	"read-test-server/model"
 )
@@ -36,9 +38,12 @@ func CreateUser(user *model.User) error {
 	return tx.Commit().Error
 }
 
-func QueryUsers() ([]*model.User, error) {
-	var users []*model.User
-	return users, db.GetDB().Model(&model.User{}).Find(&users).Error
+func QueryUsers() ([]*model.UserInfo, error) {
+	var users []*model.UserInfo
+	if err := db.GetDB().Model(&model.UserInfo{}).Preload("Papers").Find(&users).Error; err != nil {
+		return nil, err
+	}
+	return users, nil
 }
 
 func DeleteUser(uid uint) error {
@@ -52,6 +57,9 @@ func DeleteUser(uid uint) error {
 		return err
 	}
 	if err := tx.Model(&model.Answer{}).Where("uid=?", uid).Unscoped().Delete(&model.Answer{}).Error; err != nil {
+		return err
+	}
+	if err := tx.Model(&model.PaperUser{}).Where("uid=?", uid).Delete(&model.PaperUser{}).Error; err != nil {
 		return err
 	}
 	return tx.Commit().Error
@@ -115,8 +123,22 @@ func QueryPapersByUid(uid uint) ([]*model.Paper, error) {
 	return papers, db.GetDB().Model(&model.Paper{}).Where("id in (?)", subQuery).Find(&papers).Error
 }
 
-func CreateAnswer(answer *model.Answer) error {
-	return db.GetDB().Create(answer).Error
+func CreateAnswer(answer *model.Answer, paperName string) error {
+	tx := db.GetDB().Begin()
+	defer tx.Rollback()
+
+	if err := tx.Create(answer).Error; err != nil {
+		return err
+	}
+	if err := tx.Model(&model.PaperUser{}).Where("uid=? and pid=?", answer.Uid, answer.PaperId).FirstOrCreate(&model.PaperUser{
+		Uid:   answer.Uid,
+		Pid:   answer.PaperId,
+		PName: paperName,
+	}).Error; err != nil {
+		common.Log.Error("????", zap.Error(err))
+		return err
+	}
+	return tx.Commit().Error
 }
 
 func UpdateAnswer(answer *model.Answer) error {
@@ -129,11 +151,29 @@ func QueryAnswersByUidAndPaper(uid uint, paperId uint) ([]*model.Answer, error) 
 }
 
 func DeleteAnswersByUid(uid uint) error {
-	return db.GetDB().Model(&model.Answer{}).Where("uid=?", uid).Unscoped().Delete(&model.Answer{}).Error
+	tx := db.GetDB().Begin()
+	defer tx.Rollback()
+
+	if err := tx.Model(&model.Answer{}).Where("uid=?", uid).Unscoped().Delete(&model.Answer{}).Error; err != nil {
+		return err
+	}
+	if err := tx.Model(&model.PaperUser{}).Where("uid=?", uid).Delete(&model.PaperUser{}).Error; err != nil {
+		return err
+	}
+	return tx.Commit().Error
 }
 
 func DeleteAnswersByUidAndPaper(uid, paperId uint) error {
-	return db.GetDB().Model(&model.Answer{}).Where("uid=? and paper_id=?", uid, paperId).Unscoped().Delete(&model.Answer{}).Error
+	tx := db.GetDB().Begin()
+	defer tx.Rollback()
+
+	if err := db.GetDB().Model(&model.Answer{}).Where("uid=? and paper_id=?", uid, paperId).Unscoped().Delete(&model.Answer{}).Error; err != nil {
+		return err
+	}
+	if err := tx.Model(&model.PaperUser{}).Where("uid=? and pid=?", uid, paperId).Delete(&model.PaperUser{}).Error; err != nil {
+		return err
+	}
+	return tx.Commit().Error
 }
 
 func QueryAnswerProgress(uid uint, paperId uint) (*model.Answer, error) {

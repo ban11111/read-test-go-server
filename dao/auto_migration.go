@@ -13,6 +13,9 @@ func AutoMigration() {
 	if err := db.GetDB().AutoMigrate(&model.Paper{}); err != nil {
 		common.Log.Panic("AutoMigration.Paper{}", zap.Error(err))
 	}
+	if err := db.GetDB().AutoMigrate(&model.PaperUser{}); err != nil {
+		common.Log.Panic("AutoMigration.Paper{}", zap.Error(err))
+	}
 	if err := db.GetDB().AutoMigrate(&model.Answer{}); err != nil {
 		common.Log.Panic("AutoMigration.Answer{}", zap.Error(err))
 	}
