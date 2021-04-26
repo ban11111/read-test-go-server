@@ -18,8 +18,9 @@ func FakeTokenMiddleware(adminConf *AdminConfig) func(c *gin.Context) {
 		if err := json.ParseJson(token, &fake); err != nil {
 			c.JSON(403, gin.H{"success": false, "info": "invalid Token"})
 			c.Abort()
+			return
 		}
-		if fake.Password != adminConf.Configs[fake.Username] {
+		if pass := adminConf.Configs[fake.Username]; pass == "" || fake.Password != pass {
 			c.JSON(403, nil)
 			c.Abort()
 		}
