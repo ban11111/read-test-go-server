@@ -65,11 +65,13 @@ func SaveAnswer(req *model.UploadReq, audioUrl string) error {
 // 注册
 func SignUp(req *model.SignUpReq) (user *model.User, err error) {
 	user = &model.User{
-		Email:            req.Email,
-		Name:             req.Name,
-		ChineseClass:     req.ChineseClass,
-		HksLevel:         req.HksLevel,
-		EthnicBackground: req.EthnicBackground,
+		Email:                  req.Email,
+		Name:                   req.Name,
+		ChineseClass:           req.ChineseClass,
+		HksLevel:               req.HksLevel,
+		EthnicBackground:       req.EthnicBackground,
+		HasChineseAcquaintance: req.HasChineseAcquaintance,
+		AcquaintanceDetail:     req.AcquaintanceDetail,
 	}
 	err = dao.CreateUser(user)
 	return

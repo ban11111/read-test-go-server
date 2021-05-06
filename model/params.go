@@ -37,11 +37,13 @@ func (req *UploadReq) GetMiddlePath() string {
 
 // 注册请求参数
 type SignUpReq struct {
-	Email            string `json:"email"`
-	Name             string `json:"name"`
-	ChineseClass     string `json:"chinese_class"`
-	HksLevel         string `json:"hks_level"`
-	EthnicBackground string `json:"ethnic_background"`
+	Email                  string `json:"email"`
+	Name                   string `json:"name"`
+	ChineseClass           string `json:"chinese_class"`
+	HksLevel               string `json:"hks_level"`
+	EthnicBackground       string `json:"ethnic_background"`
+	HasChineseAcquaintance bool   `json:"has_chinese_acquaintance"`
+	AcquaintanceDetail     string `json:"acquaintance_detail"`
 }
 
 func (req *SignUpReq) ParamCheck() error {
@@ -106,9 +108,9 @@ type DeleteUserReq struct {
 }
 
 type AddPaperReq struct {
-	Name string `json:"name"`
-	Words string `json:"words"`
-	Interval int `json:"interval"`
+	Name     string `json:"name"`
+	Words    string `json:"words"`
+	Interval int    `json:"interval"`
 }
 
 func (req *AddPaperReq) ParamCheck() error {
