@@ -113,17 +113,17 @@ func AdminLoginHandler(adminConf *common.AdminConfig) func(c *gin.Context) {
 			common.RenderFail(c, ErrParamInvalid)
 			return
 		}
-		if req.Username != adminConf.Username {
-			common.Log.Error("AdminLoginHandler", zap.String("req.Username", req.Username), zap.String("conf.Username", adminConf.Username))
+		if adminConf.Configs[req.Username] == "" {
+			common.Log.Error("AdminLoginHandler", zap.String("req.Username", req.Username))
 			common.RenderFail(c, ErrWrongUserName)
 			return
 		}
-		if !common.MatchPass(req.Password, adminConf.EncodedPassword) {
+		if !common.MatchPass(req.Password, adminConf.Configs[req.Username]) {
 			common.RenderFail(c, ErrWrongPassword)
 			return
 		}
 		// 偷懒了, token 直接放加密后的密码得了
-		common.RenderSuccess(c, gin.H{"token": adminConf.EncodedPassword})
+		common.RenderSuccess(c, gin.H{"token": common.GenFakeToken(req.Username, adminConf)})
 	}
 }
 

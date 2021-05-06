@@ -29,6 +29,5 @@ type ServerConfig struct {
 }
 
 type AdminConfig struct {
-	Username        string `json:"username"`
-	EncodedPassword string `json:"encoded_password"`
+	Configs map[string]string `json:"configs"` // map[Username]EncodedPassword
 }
