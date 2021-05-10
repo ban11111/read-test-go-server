@@ -8,6 +8,7 @@ import (
 	"read-test-server/common"
 	"read-test-server/model"
 	"read-test-server/service"
+	"read-test-server/service/exporter"
 )
 
 // 这边定义返回给用户的报错信息
@@ -16,6 +17,7 @@ var ErrSaveAnswerFailed = errors.New("saving answer failed, please refresh or tr
 var ErrParamInvalid = errors.New("param invalid, please contact web manager")
 var ErrWrongUserName = errors.New("wrong user_name")
 var ErrWrongPassword = errors.New("wrong password")
+var ErrUnimplementedError = errors.New("function not implemented, please contact web manager")
 
 // 上传音频接口
 func UploadHandler(c *gin.Context) {
@@ -266,4 +268,39 @@ func UpdateGlobalSettingHandler(c *gin.Context) {
 
 func GetStatistics(c *gin.Context) {
 
+}
+
+// export
+
+func ExportHandler(c *gin.Context) {
+	table := c.Param("table")
+	ext := c.Param("ext")
+
+	getter := exporter.ImplementedExportDataGetters[table]
+	export := exporter.ImplementedExporters[ext]
+
+	if getter == nil || export == nil {
+		common.RenderFail(c, ErrUnimplementedError)
+		return
+	}
+
+	var ctx model.GetterCtx
+	if err := c.BindJSON(&ctx); err != nil {
+		common.RenderFail(c, ErrParamInvalid)
+		return
+	}
+
+	data, err := getter.Getter(&ctx)
+	if err != nil {
+		common.RenderFail(c, err)
+		return
+	}
+
+	reader, err := export.Export(data)
+	if err != nil {
+		common.RenderFail(c, err)
+		return
+	}
+	c.DataFromReader(200, int64(reader.Len), reader.ContentType, reader,
+		map[string]string{"Content-Disposition": `attachment; filename=` + table + "." + ext + ``})
 }

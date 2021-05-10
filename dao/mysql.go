@@ -180,3 +180,25 @@ func QueryAnswerProgress(uid uint, paperId uint) (*model.Answer, error) {
 	var answer model.Answer
 	return &answer, db.GetDB().Model(&model.Answer{}).Where("uid=? and paper_id=?", uid, paperId).Order("word_index desc").First(&answer).Error
 }
+
+// For Exporter
+func QueryUsersByIds(ids []uint) ([]*model.User, error) {
+	var users []*model.User
+	sql := db.GetDB().Model(&model.User{})
+	if len(ids) > 0 {
+		sql = sql.Where("id in (?)", ids)
+	}
+	if err := sql.Find(&users).Error; err != nil {
+		return nil, err
+	}
+	return users, nil
+}
+
+func QueryAnswersByUid(uid []uint) ([]*model.Answer, error) {
+	var answers []*model.Answer
+	sql := db.GetDB().Model(&model.Answer{})
+	if len(uid) > 0 {
+		sql = sql.Where("uid in (?)", uid)
+	}
+	return answers, sql.Order("paper_id, word_index").Find(&answers).Error
+}

@@ -10,6 +10,7 @@ import (
 	"read-test-server/common"
 	"read-test-server/dao"
 	"read-test-server/router"
+	"read-test-server/service/exporter"
 )
 
 const (
@@ -25,6 +26,8 @@ func init() {
 	common.InitLogger()
 	common.InitAudioUploadRoot()
 	gin.SetMode(gin.ReleaseMode)
+	exporter.RegisterExporter(&exporter.CsvExporter{}, &exporter.ExcelExporter{})
+	exporter.RegisterExportDataGetter(&exporter.UserGetter{}, &exporter.AnswerGetter{})
 }
 
 func main() {
