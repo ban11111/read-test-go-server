@@ -9,6 +9,7 @@ import (
 	"read-test-server/model"
 	"read-test-server/service"
 	"read-test-server/service/exporter"
+	"time"
 )
 
 // 这边定义返回给用户的报错信息
@@ -273,20 +274,17 @@ func GetStatistics(c *gin.Context) {
 // export
 
 func ExportHandler(c *gin.Context) {
-	table := c.Param("table")
-	ext := c.Param("ext")
-
-	getter := exporter.ImplementedExportDataGetters[table]
-	export := exporter.ImplementedExporters[ext]
-
-	if getter == nil || export == nil {
-		common.RenderFail(c, ErrUnimplementedError)
-		return
-	}
-
 	var ctx model.GetterCtx
 	if err := c.BindJSON(&ctx); err != nil {
 		common.RenderFail(c, ErrParamInvalid)
+		return
+	}
+
+	getter := exporter.ImplementedExportDataGetters[ctx.Table]
+	export := exporter.ImplementedExporters[ctx.Ext]
+
+	if getter == nil || export == nil {
+		common.RenderFail(c, ErrUnimplementedError)
 		return
 	}
 
@@ -302,5 +300,6 @@ func ExportHandler(c *gin.Context) {
 		return
 	}
 	c.DataFromReader(200, int64(reader.Len), reader.ContentType, reader,
-		map[string]string{"Content-Disposition": `attachment; filename=` + table + "." + ext + ``})
+		map[string]string{"Content-Disposition": `attachment; filename=` +
+			ctx.Table +time.Now().Format("2006-01-02_15-04-05")+ "." + ctx.Ext + ``})
 }

@@ -35,6 +35,7 @@ func RegisterExportDataGetter(getters ...ExportDataGetter) {
 
 type GetterCtx interface {
 	GetIds() []uint
+	GetPaperId() uint
 }
 
 type ExportDataGetter interface {

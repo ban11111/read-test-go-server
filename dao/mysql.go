@@ -194,11 +194,11 @@ func QueryUsersByIds(ids []uint) ([]*model.User, error) {
 	return users, nil
 }
 
-func QueryAnswersByUid(uid []uint) ([]*model.Answer, error) {
+func QueryAnswersByUidsAndPaperId(uid []uint, paperId uint) ([]*model.Answer, error) {
 	var answers []*model.Answer
 	sql := db.GetDB().Model(&model.Answer{})
 	if len(uid) > 0 {
 		sql = sql.Where("uid in (?)", uid)
 	}
-	return answers, sql.Order("paper_id, word_index").Find(&answers).Error
+	return answers, sql.Where("paper_id=?", paperId).Order("uid, paper_id, word_index").Find(&answers).Error
 }

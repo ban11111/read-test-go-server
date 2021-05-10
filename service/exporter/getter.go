@@ -20,6 +20,6 @@ func (u *AnswerGetter) Table() string {
 }
 
 func (u *AnswerGetter) Getter(ctx GetterCtx) (data interface{}, err error) {
-	usersByIds, err := dao.QueryAnswersByUid(ctx.GetIds())
+	usersByIds, err := dao.QueryAnswersByUidsAndPaperId(ctx.GetIds(), ctx.GetPaperId())
 	return usersByIds, err
 }

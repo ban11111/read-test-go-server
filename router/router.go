@@ -54,6 +54,6 @@ func RegisterRouter(r *gin.Engine, adminConf *common.AdminConfig) {
 		adminAuth.POST("/update_setting", handler.UpdateGlobalSettingHandler)
 
 		// exporter
-		adminAuth.POST("/export/:table/:ext", handler.ExportHandler)
+		adminAuth.POST("/export", handler.ExportHandler)
 	}
 }
