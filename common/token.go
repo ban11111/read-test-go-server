@@ -1,8 +1,8 @@
 package common
 
 import (
-	"github.com/dipperin/go-ms-toolkit/json"
 	"github.com/gin-gonic/gin"
+	"strings"
 )
 
 type fakeToken struct {
@@ -14,11 +14,10 @@ type fakeToken struct {
 func FakeTokenMiddleware(adminConf *AdminConfig) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		token := c.GetHeader("Token")
-		var fake fakeToken
-		if err := json.ParseJson(token, &fake); err != nil {
-			c.JSON(403, gin.H{"success": false, "info": "invalid Token"})
-			c.Abort()
-			return
+		slice := strings.Split(token, "_")
+		var fake = fakeToken{
+			Username: slice[0],
+			Password: slice[len(slice)-1],
 		}
 		if pass := adminConf.Configs[fake.Username]; pass == "" || fake.Password != pass {
 			c.JSON(403, nil)
@@ -28,8 +27,9 @@ func FakeTokenMiddleware(adminConf *AdminConfig) func(c *gin.Context) {
 }
 
 func GenFakeToken(username string, adminConf *AdminConfig) string {
-	return json.StringifyJson(&fakeToken{
-		Username: username,
-		Password: adminConf.Configs[username],
-	})
+	//return json.StringifyJson(&fakeToken{
+	//	Username: username,
+	//	Password: adminConf.Configs[username],
+	//})
+	return username + "_" + adminConf.Configs[username]
 }
