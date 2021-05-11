@@ -211,3 +211,7 @@ func UpdateGlobalSetting(settings map[string]interface{}) error {
 	}
 	return nil
 }
+
+func GetStatistics() (*model.StatisticsResp, error) {
+	return dao.QueryStatistics()
+}

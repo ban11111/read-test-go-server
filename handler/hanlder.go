@@ -265,14 +265,15 @@ func UpdateGlobalSettingHandler(c *gin.Context) {
 	common.RenderSuccess(c)
 }
 
-// ================= todo 统计相关接口 ===================
-
-func GetStatistics(c *gin.Context) {
-
+func GetStatisticsHandler(c *gin.Context) {
+	statistics, err := service.GetStatistics()
+	if err != nil {
+		common.RenderFail(c, err)
+	}
+	common.RenderSuccess(c, statistics)
 }
 
 // export
-
 func ExportHandler(c *gin.Context) {
 	var ctx model.GetterCtx
 	if err := c.BindJSON(&ctx); err != nil {

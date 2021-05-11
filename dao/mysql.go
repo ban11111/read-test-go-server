@@ -6,6 +6,8 @@ import (
 	"read-test-server/common"
 	"read-test-server/common/gorm2/mysql"
 	"read-test-server/model"
+	"regexp"
+	"time"
 )
 
 var db mysql.DB
@@ -201,4 +203,143 @@ func QueryAnswersByUidsAndPaperId(uid []uint, paperId uint) ([]*model.Answer, er
 		sql = sql.Where("uid in (?)", uid)
 	}
 	return answers, sql.Where("paper_id=?", paperId).Order("uid, paper_id, word_index").Find(&answers).Error
+}
+
+type countTool struct {
+	Count      int
+	CreateTime string
+	Device     string
+}
+
+func QueryStatistics() (*model.StatisticsResp, error) {
+	resp := &model.StatisticsResp{
+		Chart: model.ChartInfo{
+			Daily: model.ChartCount{
+				NewUser:   make([]int, 7),
+				NewAnswer: make([]int, 7),
+				Labels:    make([]string, 7),
+			},
+			Monthly: model.ChartCount{
+				NewUser:   make([]int, 7),
+				NewAnswer: make([]int, 7),
+				Labels:    make([]string, 7),
+			},
+		},
+	}
+	var count int64
+	if err := db.GetDB().Model(&model.User{}).Count(&count).Error; err != nil {
+		return nil, err
+	}
+	resp.TotalUsers = int(count)
+	count = 0
+
+	var counts []*countTool
+	// =================================================================================================================
+	//                                               device info
+	// =================================================================================================================
+	if err := db.GetDB().Model(&model.Answer{}).Select("count(*) as count, device").
+		Group("device").Scan(&counts).Error; err != nil {
+		return nil, err
+	}
+	for _, count := range counts {
+		switch count.Device {
+		case "desktop":
+			resp.Device.Desktop = count.Count
+		case "tablet":
+			resp.Device.Tablet = count.Count
+		case "mobile":
+			resp.Device.Mobile = count.Count
+		default:
+			resp.Device.Unknown += count.Count
+		}
+	}
+	resp.TotalAnswers = resp.Device.Desktop + resp.Device.Tablet + resp.Device.Mobile + resp.Device.Unknown
+
+	// =================================================================================================================
+	//                                               chart info
+	// =================================================================================================================
+	year, month, day := time.Now().Date()
+	dailyBegin := time.Date(year, month, day, 0, 0, 0, 0, time.Local).Add(-time.Hour * 24 * 6)
+	monthlyBegin := time.Date(year, month, 1, 0, 0, 0, 0, time.Local).AddDate(0, -6, 0)
+
+	if err := db.GetDB().Model(&model.User{}).Select("count(*) as count, @createTime as create_time").
+		Where("?<=created_at", dailyBegin).Group("@createTime := date(created_at)").Scan(&counts).Error; err != nil {
+		return nil, err
+	}
+	if err := calculateChartCounts(dailyBegin, 0, 1, counts, resp.Chart.Daily.NewUser, resp.Chart.Daily.Labels); err != nil {
+		return nil, err
+	}
+
+	if err := db.GetDB().Model(&model.User{}).Select("count(*) as count, concat(@createTime, '-01') as create_time").
+		Where("?<=created_at", monthlyBegin).Group("@createTime := DATE_FORMAT(created_at, '%Y-%m')").Scan(&counts).Error; err != nil {
+		return nil, err
+	}
+	if err := calculateChartCounts(monthlyBegin, 1, 0, counts, resp.Chart.Monthly.NewUser, resp.Chart.Monthly.Labels); err != nil {
+		return nil, err
+	}
+	resp.CurrentMonthUsers = resp.Chart.Monthly.NewUser[len(resp.Chart.Monthly.NewUser)-1]
+
+	if err := db.GetDB().Model(&model.Answer{}).Select("count(*) as count, @createTime as create_time").
+		Where("?<=created_at", dailyBegin).Group("@createTime := date(created_at)").Scan(&counts).Error; err != nil {
+		return nil, err
+	}
+	if err := calculateChartCounts(dailyBegin, 0, 1, counts, resp.Chart.Daily.NewAnswer, nil); err != nil {
+		return nil, err
+	}
+
+	if err := db.GetDB().Model(&model.Answer{}).Select("count(*) as count, concat(@createTime, '-01') as create_time").
+		Where("?<=created_at", monthlyBegin).Group("@createTime := DATE_FORMAT(created_at, '%Y-%m')").Scan(&counts).Error; err != nil {
+		return nil, err
+	}
+	if err := calculateChartCounts(monthlyBegin, 1, 0, counts, resp.Chart.Monthly.NewAnswer, nil); err != nil {
+		return nil, err
+	}
+
+	// =================================================================================================================
+	//                                               total progress
+	// =================================================================================================================
+	var paper model.Paper
+	if err := db.GetDB().Model(&model.Paper{}).Select("id, words").Where("inuse=?", true).Last(&paper).Error; err != nil {
+		return nil, err
+	}
+	if err := db.GetDB().Model(&model.Answer{}).Where("paper_id=?", paper.Id).Count(&count).Error; err != nil {
+		return nil, err
+	}
+	resp.TotalProgress = float32(count) / float32(len(regexp.MustCompile("[ \t\n]").Split(paper.Words, -1))*resp.TotalUsers)
+
+	return resp, nil
+}
+
+func calculateChartCounts(begin time.Time, offsetMonth, offsetDay int, counts []*countTool, result []int, labels []string) error {
+	for i, j := 0, 0; i < len(result); i++ {
+		date := begin.AddDate(0, offsetMonth*i, offsetDay*i)
+		if len(labels) > 0 {
+			if offsetDay > 0 {
+				labels[i] = date.Format("2 Jan")
+			} else {
+				labels[i] = date.Format("Jan")
+			}
+		}
+		if j > len(counts)-1 {
+			continue
+		}
+		parsed, err := time.ParseInLocation("2006-01-02", counts[j].CreateTime, time.Local)
+		if err != nil {
+			return err
+		}
+		for date.After(parsed) {
+			j++
+			if j > len(counts)-1 {
+				break
+			}
+			parsed, err = time.ParseInLocation("2006-01-02", counts[j].CreateTime, time.Local)
+			if err != nil {
+				return err
+			}
+		}
+		if date.Equal(parsed) {
+			result[i] = counts[j].Count
+		}
+	}
+	return nil
 }

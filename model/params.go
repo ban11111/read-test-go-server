@@ -136,3 +136,30 @@ func (req *PublishPaperReq) ParamCheck() error {
 	}
 	return nil
 }
+
+type StatisticsResp struct {
+	TotalUsers        int        `json:"total_users"`
+	CurrentMonthUsers int        `json:"current_month_users"`
+	TotalProgress     float32    `json:"total_progress"`
+	TotalAnswers      int        `json:"total_answers"`
+	Device            DeviceInfo `json:"device"`
+	Chart             ChartInfo  `json:"chart"`
+}
+
+type DeviceInfo struct {
+	Desktop int `json:"desktop"` // percentage
+	Tablet  int `json:"tablet"`  // percentage
+	Mobile  int `json:"mobile"`  // percentage
+	Unknown int `json:"unknown"` // percentage
+}
+
+type ChartInfo struct {
+	Daily   ChartCount `json:"daily"`   // 7 days
+	Monthly ChartCount `json:"monthly"` // 7 months
+}
+
+type ChartCount struct {
+	NewUser   []int    `json:"new_user"`
+	NewAnswer []int    `json:"new_answer"`
+	Labels    []string `json:"labels"`
+}
