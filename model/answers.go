@@ -1,11 +1,29 @@
 package model
 
-import "time"
+import (
+	"database/sql/driver"
+	"time"
+)
 
-type csvTime time.Time
+type csvTime struct {
+	time.Time
+}
 
-func (t csvTime) MarshalCSV() (string, error) {
-	return time.Time(t).Format("2006-01-02 15:04:05"), nil
+func (t *csvTime) MarshalCSV() (string, error) {
+	return t.Format("2006-01-02 15:04:05"), nil
+}
+
+func (t *csvTime) Scan(value interface{}) error {
+	if value == nil {
+		t.Time = time.Time{}
+		return nil
+	}
+	t.Time = value.(time.Time)
+	return nil
+}
+
+func (t *csvTime) Value() (driver.Value, error) {
+	return t.Time, nil
 }
 
 // gorm 通用前置字段
