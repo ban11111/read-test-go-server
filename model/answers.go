@@ -2,10 +2,16 @@ package model
 
 import "time"
 
+type csvTime time.Time
+
+func (t csvTime) MarshalCSV() (string, error) {
+	return time.Time(t).Format("2006-01-02 15:04:05"), nil
+}
+
 // gorm 通用前置字段
 type Base struct {
 	Id        uint       `json:"id" gorm:"primaryKey" csv:"id" width:"8"`
-	CreatedAt time.Time  `json:"created_at" gorm:"COMMENT:'创建时间';index" csv:"create_time" width:"18"`
+	CreatedAt csvTime    `json:"created_at" gorm:"COMMENT:'创建时间';index" csv:"create_time" width:"18"`
 	UpdatedAt time.Time  `json:"updated_at" gorm:"COMMENT:'更新时间'" csv:"-"`
 	DeletedAt *time.Time `json:"deleted_at" gorm:"COMMENT:'软删除时间'" csv:"-"`
 }
