@@ -3,6 +3,7 @@ package service
 import (
 	"errors"
 	"fmt"
+	"go.uber.org/zap"
 	"gorm.io/gorm"
 	"io"
 	"mime/multipart"
@@ -213,5 +214,10 @@ func UpdateGlobalSetting(settings map[string]interface{}) error {
 }
 
 func GetStatistics() (*model.StatisticsResp, error) {
-	return dao.QueryStatistics()
+	resp, err := dao.QueryStatistics()
+	if err != nil {
+		common.Log.Error("GetStatistics", zap.Error(err))
+		return nil, err
+	}
+	return resp, nil
 }

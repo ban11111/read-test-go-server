@@ -323,6 +323,9 @@ func calculateChartCounts(begin time.Time, offsetMonth, offsetDay int, counts []
 		if j > len(counts)-1 {
 			continue
 		}
+		if counts[j].CreateTime == "" {
+			continue
+		}
 		parsed, err := time.ParseInLocation("2006-01-02", counts[j].CreateTime, time.Local)
 		if err != nil {
 			return err
