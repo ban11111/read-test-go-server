@@ -22,7 +22,7 @@ func (t *csvTime) Scan(value interface{}) error {
 	return nil
 }
 
-func (t *csvTime) Value() (driver.Value, error) {
+func (t csvTime) Value() (driver.Value, error) {
 	return t.Time, nil
 }
 
